@@ -1,0 +1,11 @@
+
+/{
+	combos {
+		combo_test {
+		    timeout-ms = <80>;
+		    key-positions = <01 03>;
+		    bindings = <&test-macro>;
+		    slow-release;
+		};
+	};
+}
