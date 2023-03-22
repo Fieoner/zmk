@@ -16,6 +16,8 @@ static struct zmk_hid_keyboard_report keyboard_report = {
 
 static struct zmk_hid_consumer_report consumer_report = {.report_id = 2, .body = {.keys = {0}}};
 
+static struct zmk_hid_gamepad_report gamepad_report = {.report_id = 3, .body = {.buttons = {0}}};
+
 // Keep track of how often a modifier was pressed.
 // Only release the modifier if the count is 0.
 static int explicit_modifier_counts[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -188,6 +190,16 @@ int zmk_hid_masked_modifiers_clear() {
     return current == GET_MODIFIERS ? 0 : 1;
 }
 
+int zmk_hid_gamepad_press(zmk_key_t code) {
+    WRITE_BIT(gamepad_report.body.buttons[code/8], code % 8 , true);
+    return 0;
+}
+
+int zmk_hid_gamepad_release(zmk_key_t code) {
+    WRITE_BIT(gamepad_report.body.buttons[code/8], code % 8, false);
+    return 0;
+}
+
 int zmk_hid_keyboard_press(zmk_key_t code) {
     if (code >= HID_USAGE_KEY_KEYBOARD_LEFTCONTROL && code <= HID_USAGE_KEY_KEYBOARD_RIGHT_GUI) {
         return zmk_hid_register_mod(code - HID_USAGE_KEY_KEYBOARD_LEFTCONTROL);
@@ -225,6 +237,8 @@ int zmk_hid_consumer_release(zmk_key_t code) {
 
 void zmk_hid_consumer_clear() { memset(&consumer_report.body, 0, sizeof(consumer_report.body)); }
 
+void zmk_hid_gamepad_clear() { memset(&gamepad_report.body, 0, sizeof(gamepad_report.body)); }
+
 bool zmk_hid_consumer_is_pressed(zmk_key_t key) {
     for (int idx = 0; idx < CONFIG_ZMK_HID_CONSUMER_REPORT_SIZE; idx++) {
         if (consumer_report.body.keys[idx] == key) {
@@ -240,6 +254,8 @@ int zmk_hid_press(uint32_t usage) {
         return zmk_hid_keyboard_press(ZMK_HID_USAGE_ID(usage));
     case HID_USAGE_CONSUMER:
         return zmk_hid_consumer_press(ZMK_HID_USAGE_ID(usage));
+    case HID_USAGE_GAME:
+        return zmk_hid_gamepad_press(ZMK_HID_USAGE_ID(usage));
     }
     return -EINVAL;
 }
@@ -250,6 +266,8 @@ int zmk_hid_release(uint32_t usage) {
         return zmk_hid_keyboard_release(ZMK_HID_USAGE_ID(usage));
     case HID_USAGE_CONSUMER:
         return zmk_hid_consumer_release(ZMK_HID_USAGE_ID(usage));
+    case HID_USAGE_GAME:
+        return zmk_hid_gamepad_release(ZMK_HID_USAGE_ID(usage));
     }
     return -EINVAL;
 }
@@ -270,4 +288,8 @@ struct zmk_hid_keyboard_report *zmk_hid_get_keyboard_report() {
 
 struct zmk_hid_consumer_report *zmk_hid_get_consumer_report() {
     return &consumer_report;
+}
+
+struct zmk_hid_gamepad_report *zmk_hid_get_gamepad_report() {
+    return &gamepad_report;
 }

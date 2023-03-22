@@ -89,6 +89,24 @@ static const uint8_t zmk_hid_report_desc[] = {
     /* INPUT (Data,Ary,Abs) */
     HID_INPUT(0x00),
     HID_END_COLLECTION,
+    /* Gamepad report descriptor */
+    0x05, 0x01,        // USAGE_PAGE (Generic Desktop)
+    0x09, 0x05,        // USAGE (Game Pad)
+    0xA1, 0x01,        // COLLECTION (Application)
+    HID_REPORT_ID(0x03),
+    //0x85, 0x03,           REPORT_ID (3)
+    0x15, 0x00,        //   LOGICAL_MINIMUM (0)
+    0x25, 0x01,        //   LOGICAL_MAXIMUM (1)
+    0x35, 0x00,        //   PHYSICAL_MINIMUM (0)
+    0x45, 0x01,        //   PHYSICAL_MAXIMUM (1)
+    0x75, 0x01,        //   REPORT_SIZE (1)
+    0x95, 0x10,        //   REPORT_COUNT (16)
+    0x05, 0x09,        //   USAGE_PAGE (Button)
+    0x19, 0x01,        //   USAGE_MINIMUM (Button 1)
+    0x29, 0x10,        //   USAGE_MAXIMUM (Button 16)
+    0x81, 0x02,        //   INPUT (Data,Var,Abs)
+    0xC0              // END_COLLECTION
+
 };
 
 // struct zmk_hid_boot_report
@@ -126,6 +144,15 @@ struct zmk_hid_consumer_report {
     struct zmk_hid_consumer_report_body body;
 } __packed;
 
+struct zmk_hid_gamepad_report_body {
+    uint8_t buttons[2];
+} __packed;
+
+struct zmk_hid_gamepad_report {
+    uint8_t report_id;
+    struct zmk_hid_gamepad_report_body body;
+} __packed;
+
 zmk_mod_flags_t zmk_hid_get_explicit_mods();
 int zmk_hid_register_mod(zmk_mod_t modifier);
 int zmk_hid_unregister_mod(zmk_mod_t modifier);
@@ -148,9 +175,14 @@ int zmk_hid_consumer_release(zmk_key_t key);
 void zmk_hid_consumer_clear();
 bool zmk_hid_consumer_is_pressed(zmk_key_t key);
 
+int zmk_hid_gamepad_press(zmk_key_t key);
+int zmk_hid_gamepad_release(zmk_key_t key);
+void zmk_hid_gamepad_clear();
+
 int zmk_hid_press(uint32_t usage);
 int zmk_hid_release(uint32_t usage);
 bool zmk_hid_is_pressed(uint32_t usage);
 
 struct zmk_hid_keyboard_report *zmk_hid_get_keyboard_report();
 struct zmk_hid_consumer_report *zmk_hid_get_consumer_report();
+struct zmk_hid_gamepad_report *zmk_hid_get_gamepad_report();

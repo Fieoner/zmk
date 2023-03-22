@@ -130,6 +130,36 @@ static int send_consumer_report() {
     }
 }
 
+static int send_gamepad_report() {
+    struct zmk_hid_gamepad_report *gamepad_report = zmk_hid_get_gamepad_report();
+
+    switch (current_endpoint) {
+#if IS_ENABLED(CONFIG_ZMK_USB)
+    case ZMK_ENDPOINT_USB: {
+        int err = zmk_usb_hid_send_report((uint8_t *)gamepad_report, sizeof(*gamepad_report));
+        if (err) {
+            LOG_ERR("FAILED TO SEND OVER USB: %d", err);
+        }
+        return err;
+    }
+#endif /* IS_ENABLED(CONFIG_ZMK_USB) */
+
+#if IS_ENABLED(CONFIG_ZMK_BLE)
+    case ZMK_ENDPOINT_BLE: {
+        int err = zmk_hog_send_gamepad_report(&gamepad_report->body);
+        if (err) {
+            LOG_ERR("FAILED TO SEND OVER HOG: %d", err);
+        }
+        return err;
+    }
+#endif /* IS_ENABLED(CONFIG_ZMK_BLE) */
+
+    default:
+        LOG_ERR("Unsupported endpoint %d", current_endpoint);
+        return -ENOTSUP;
+    }
+}
+
 int zmk_endpoints_send_report(uint16_t usage_page) {
 
     LOG_DBG("usage page 0x%02X", usage_page);
@@ -138,6 +168,8 @@ int zmk_endpoints_send_report(uint16_t usage_page) {
         return send_keyboard_report();
     case HID_USAGE_CONSUMER:
         return send_consumer_report();
+    case HID_USAGE_GAME:
+        return send_gamepad_report();
     default:
         LOG_ERR("Unsupported usage page %d", usage_page);
         return -ENOTSUP;
@@ -228,9 +260,11 @@ static enum zmk_endpoint get_selected_endpoint() {
 static void disconnect_current_endpoint() {
     zmk_hid_keyboard_clear();
     zmk_hid_consumer_clear();
+    zmk_hid_gamepad_clear();
 
     zmk_endpoints_send_report(HID_USAGE_KEY);
     zmk_endpoints_send_report(HID_USAGE_CONSUMER);
+    zmk_endpoints_send_report(HID_USAGE_GAME);
 }
 
 static void update_current_endpoint() {
