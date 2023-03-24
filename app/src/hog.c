@@ -292,7 +292,8 @@ void send_gamepad_report_callback(struct k_work *work) {
         }
 
         struct bt_gatt_notify_params notify_params = {
-            .attr = &hog_svc.attrs[10],
+            // where does this 13 come from???? I got here through sheer trial and error
+            .attr = &hog_svc.attrs[13],
             .data = &report,
             .len = sizeof(report),
         };
