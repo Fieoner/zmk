@@ -280,7 +280,7 @@ int zmk_hog_send_consumer_report(struct zmk_hid_consumer_report_body *report) {
 };
 
 K_MSGQ_DEFINE(zmk_hog_gamepad_msgq, sizeof(struct zmk_hid_gamepad_report_body),
-              CONFIG_ZMK_BLE_CONSUMER_REPORT_QUEUE_SIZE, 4);
+              CONFIG_ZMK_BLE_KEYBOARD_REPORT_QUEUE_SIZE, 4);
 
 void send_gamepad_report_callback(struct k_work *work) {
     struct zmk_hid_gamepad_report_body report;
