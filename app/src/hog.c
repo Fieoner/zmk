@@ -18,6 +18,18 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/hog.h>
 #include <zmk/hid.h>
 
+/* 
+ * each report data is written to &hog_svc.attrs[some offset] where "some offset" is the
+ * size of the data before the report (battery report and other ble stuff)
+ * As of now the 3 reports we write here are:
+ *	keyboard: starts at 5 and its size is 5
+ * 	consumer: starts at 10 and its size is 3
+ * 	gamepad: starts at 13 and its size is 4
+ */
+#define KEYBOARD_REPORT_OFFSET 5
+#define CONSUMER_REPORT_OFFSET 10
+#define GAMEPAD_REPORT_OFFSET 13
+
 enum {
     HIDS_REMOTE_WAKE = BIT(0),
     HIDS_NORMALLY_CONNECTABLE = BIT(1),
@@ -137,26 +149,34 @@ BT_GATT_SERVICE_DEFINE(
     hog_svc, BT_GATT_PRIMARY_SERVICE(BT_UUID_HIDS),
     //    BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_PROTOCOL_MODE, BT_GATT_CHRC_WRITE_WITHOUT_RESP,
     //                           BT_GATT_PERM_WRITE, NULL, write_proto_mode, &proto_mode),
+
+    // battery(?) report
     BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_INFO, BT_GATT_CHRC_READ, BT_GATT_PERM_READ, read_hids_info,
                            NULL, &info),
     BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT_MAP, BT_GATT_CHRC_READ, BT_GATT_PERM_READ_ENCRYPT,
                            read_hids_report_map, NULL, NULL),
 
+    // keyboard report
     BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
                            BT_GATT_PERM_READ_ENCRYPT, read_hids_input_report, NULL, NULL),
     BT_GATT_CCC(input_ccc_changed, BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT),
     BT_GATT_DESCRIPTOR(BT_UUID_HIDS_REPORT_REF, BT_GATT_PERM_READ_ENCRYPT, read_hids_report_ref,
                        NULL, &input),
+
+    // consumer report
     BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
                            BT_GATT_PERM_READ_ENCRYPT, read_hids_consumer_input_report, NULL, NULL),
     BT_GATT_CCC(input_ccc_changed, BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT),
     BT_GATT_DESCRIPTOR(BT_UUID_HIDS_REPORT_REF, BT_GATT_PERM_READ_ENCRYPT, read_hids_report_ref,
                        NULL, &consumer_input),
+
+    // gamepad report
     BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
                            BT_GATT_PERM_READ_ENCRYPT, read_hids_gamepad_input_report, NULL, NULL),
     BT_GATT_CCC(input_ccc_changed, BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT),
     BT_GATT_DESCRIPTOR(BT_UUID_HIDS_REPORT_REF, BT_GATT_PERM_READ_ENCRYPT, read_hids_report_ref,
                        NULL, &gamepad_input),
+
     BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_CTRL_POINT, BT_GATT_CHRC_WRITE_WITHOUT_RESP,
                            BT_GATT_PERM_WRITE, NULL, write_ctrl_point, &ctrl_point));
 
@@ -192,7 +212,7 @@ void send_keyboard_report_callback(struct k_work *work) {
         }
 
         struct bt_gatt_notify_params notify_params = {
-            .attr = &hog_svc.attrs[5],
+            .attr = &hog_svc.attrs[KEYBOARD_REPORT_OFFSET],
             .data = &report,
             .len = sizeof(report),
         };
@@ -242,7 +262,7 @@ void send_consumer_report_callback(struct k_work *work) {
         }
 
         struct bt_gatt_notify_params notify_params = {
-            .attr = &hog_svc.attrs[10],
+            .attr = &hog_svc.attrs[CONSUMER_REPORT_OFFSET],
             .data = &report,
             .len = sizeof(report),
         };
@@ -292,8 +312,7 @@ void send_gamepad_report_callback(struct k_work *work) {
         }
 
         struct bt_gatt_notify_params notify_params = {
-            // where does this 13 come from???? I got here through sheer trial and error
-            .attr = &hog_svc.attrs[13],
+            .attr = &hog_svc.attrs[GAMEPAD_REPORT_OFFSET],
             .data = &report,
             .len = sizeof(report),
         };
