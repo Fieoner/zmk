@@ -24,6 +24,14 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
                                      struct zmk_behavior_binding_event event) {
     LOG_DBG("position %d keycode 0x%02X", event.position, binding->param1);
 
+    //TODO: make doubleclick great again (or be a normal person and map it to a different key and call it a day)
+    /*
+    bool pressed = zmk_mouse_is_pressed(binding->param1);
+    if (pressed) {
+        ZMK_EVENT_RAISE(
+                zmk_mouse_button_state_changed_from_encoded(binding->param1, false, event.timestamp));
+    }
+    */
     return ZMK_EVENT_RAISE(
         zmk_mouse_button_state_changed_from_encoded(binding->param1, true, event.timestamp));
 }
