@@ -112,7 +112,7 @@ static void zmk_trackballs_poll_handler(struct k_work *work) {
   };
 
   if(msg.dx != 0 || msg.dy != 0) {
-    LOG_INF("New position received: dx = %d, dy = %d", msg.dx, msg.dy);
+    //LOG_INF("New position received: dx = %d, dy = %d", msg.dx, msg.dy);
     k_msgq_put(&zmk_trackballs_msgq, &msg, K_NO_WAIT);
     k_work_submit_to_queue(zmk_pd_work_q(), &zmk_trackballs_msgq_work);
   }
@@ -120,7 +120,7 @@ static void zmk_trackballs_poll_handler(struct k_work *work) {
 
 // trigger handler
 static void zmk_trackballs_trigger_handler(const struct device *dev, const struct sensor_trigger *trig) {
-  LOG_INF("New interrupt received");
+  //LOG_INF("New interrupt received");
 
 	struct trackballs_data_item *item = CONTAINER_OF(trig, struct trackballs_data_item, trigger);
 
@@ -130,7 +130,7 @@ static void zmk_trackballs_trigger_handler(const struct device *dev, const struc
   };
 
   // start the polling timer (the real work now is dispatched to a timer-based polling)
-  LOG_INF("Polling start ...");
+  //LOG_INF("Polling start ...");
   k_timer_start(&item->poll_timer, K_NO_WAIT, K_MSEC(polling_interval));
 }
 
@@ -140,7 +140,7 @@ void zmk_trackballs_timer_expiry(struct k_timer *timer) {
 
   // check whether reaching the polling count limit
   if(item->polling_count < max_poll_count) {
-    LOG_INF("Poll %d", item->polling_count);
+    //LOG_INF("Poll %d", item->polling_count);
     // submit polling work to mouse work queue
     k_work_submit_to_queue(zmk_pd_work_q(), &item->poll_work);
 
@@ -148,7 +148,7 @@ void zmk_trackballs_timer_expiry(struct k_timer *timer) {
     item->polling_count++;
   }
   else {
-    LOG_INF("Polling end.");
+    //LOG_INF("Polling end.");
     // stop timer
     k_timer_stop(&item->poll_timer);
   }

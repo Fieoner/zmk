@@ -575,7 +575,7 @@ static int pmw3360_async_init_fw_load_verify(const struct device *dev) {
         return err;
     }
 
-    LOG_DBG("Optical chip firmware ID: 0x%x", fw_id);
+    LOG_ERR("Optical chip firmware ID: 0x%x", fw_id);
     if (fw_id != PMW3360_FIRMWARE_ID) {
         LOG_ERR("Chip is not running from SROM!");
         return -EIO;
@@ -663,6 +663,7 @@ static int pmw3360_async_init_power_up(const struct device *dev) {
 
 static int pmw3360_async_init_configure(const struct device *dev) {
     int err;
+    LOG_ERR("async configuring");
 
     err = set_cpi(dev, CONFIG_PMW3360_CPI);
 
@@ -805,8 +806,8 @@ static int pmw3360_sample_fetch(const struct device *dev, enum sensor_channel ch
         /* int16_t y = sys_get_le16(&buf[PMW3360_DY_POS]); */
 
         if (IS_ENABLED(CONFIG_PMW3360_ORIENTATION_0)) {
-            data->x = -x;
-            data->y = y;
+            data->x = x;
+            data->y = -y;
         } else if (IS_ENABLED(CONFIG_PMW3360_ORIENTATION_90)) {
             data->x = y;
             data->y = -x;
@@ -816,7 +817,7 @@ static int pmw3360_sample_fetch(const struct device *dev, enum sensor_channel ch
         } else if (IS_ENABLED(CONFIG_PMW3360_ORIENTATION_270)) {
             data->x = -y;
             data->y = x;
-        }
+	}
     }
 
     return err;
