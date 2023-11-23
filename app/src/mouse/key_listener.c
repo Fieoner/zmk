@@ -142,12 +142,16 @@ static void listener_mouse_scroll_released(const struct zmk_mouse_scroll_state_c
 static void listener_mouse_button_pressed(const struct zmk_mouse_button_state_changed *ev) {
     LOG_DBG("buttons: 0x%02X", ev->buttons);
     zmk_hid_mouse_buttons_press(ev->buttons);
+    zmk_hid_mouse_movement_set(0, 0);
+    zmk_hid_mouse_scroll_set(0, 0);
     zmk_endpoints_send_mouse_report();
 }
 
 static void listener_mouse_button_released(const struct zmk_mouse_button_state_changed *ev) {
     LOG_DBG("buttons: 0x%02X", ev->buttons);
     zmk_hid_mouse_buttons_release(ev->buttons);
+    zmk_hid_mouse_movement_set(0, 0);
+    zmk_hid_mouse_scroll_set(0, 0);
     zmk_endpoints_send_mouse_report();
 }
 
