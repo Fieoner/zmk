@@ -35,6 +35,16 @@ struct behavior_point_device_incremental_config {
   bool smoothing; // todo
 };
 
+struct scroll_precision_leftover {
+  int x;
+  int y;
+};
+
+static struct scroll_precision_leftover leftover = {
+    .x = 0,
+    .y = 0
+};
+
 static int behavior_point_device_incremental_init(const struct device *dev) { return 0; };
 
 static int on_pd_binding_triggered(struct zmk_behavior_binding *binding,
@@ -71,8 +81,14 @@ static int on_pd_binding_triggered(struct zmk_behavior_binding *binding,
     y = y * cfg->scale_factor;
     break;
   case DIVIDOR:
+    x += leftover.x;
+    y += leftover.y;
+    leftover.x = x % cfg->scale_factor;
+    leftover.y = y % cfg->scale_factor;
     x = x / cfg->scale_factor;
     y = y / cfg->scale_factor;
+    LOG_INF("x: %d, leftover: %d", x, leftover.x);
+    LOG_INF("y: %d, leftover: %d", y, leftover.y);
     break;
   default:
     LOG_ERR("unsupported scale mode %d", cfg->scale_mode);

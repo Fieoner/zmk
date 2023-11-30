@@ -191,6 +191,8 @@ int zmk_trackballs_endpoint_listener(const zmk_event_t *eh) {
     LOG_ERR("Unsupported endpoint");
   }
 
+  LOG_INF("max_poll_count: %d", max_poll_count);
+  LOG_INF("polling_interval: %d", polling_interval);
   return ZMK_EV_EVENT_BUBBLE;
 }
 
